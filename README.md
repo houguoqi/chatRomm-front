@@ -19,7 +19,11 @@ npm run build
 See [Configuration Reference](https://cli.vuejs.org/config/).
 
 ###记录 
-#发送图片(正在写)
-#显示发送时间
-#显示聊天室当前人数
-#Enter发送消息
+
+###发送图片(不大于2M)
+
+###显示发送时间
+
+###显示聊天室当前人数
+
+###Enter发送消息
