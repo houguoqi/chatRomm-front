@@ -1,7 +1,7 @@
 <template>
   <div class="login">
     <div class="toast">
-      <div class="tip">请输入您的昵称</div>
+      <div class="tip" style="color:black;font-weight:600">请输入您的昵称</div>
       <el-input style="width:80%" placeholder="请输入内容" v-model="username" clearable></el-input>
       <el-button type="primary" round @click.native="open">进入聊天室</el-button>
     </div>
@@ -17,7 +17,10 @@ export default {
     };
   },
   mounted() {
-
+    document.onkeydown=(e)=>{
+      if(e.keyCode===13)
+      this.open()
+    }
   },
   methods: {
     open() {

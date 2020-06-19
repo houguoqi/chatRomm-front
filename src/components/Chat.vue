@@ -1,10 +1,11 @@
 <template>
   <div class="chat">
-    <div class="head">聊天室</div>
+    <div class="head">聊天室({{users}})</div>
     <div class="msg-area">
       <Scroll class="wrapper" ref="scroll">
         <div>
           <div v-for="(item,index) in messageList" :key="index" class="item">
+            <div class="time">{{item.date}}</div>
             <!-- 进入聊天室 -->
             <div class="getin" v-if="item.type===1">{{item.msg}}</div>
             <!-- 发送消息 -->
@@ -14,7 +15,11 @@
               </div>
               <div class="msg">
                 <div class="username">{{item.username}}</div>
-                <div class="msg-content">{{item.msg}}</div>
+                <div class="msg-content">
+                  {{item.msg}}
+                  <img v-if="item.imgurl" style="width:100%" :src="item.imgurl" />
+                  <!-- 拿一个图片来放大版  -->
+                </div>
               </div>
             </div>
             <!-- 退出聊天室 -->
@@ -24,6 +29,10 @@
       </Scroll>
     </div>
     <div class="cin-wrap">
+      <div class="selectImg">
+        <i class="el-icon-picture-outline" style="font-size:33px"></i>
+        <input type="file" accept="image/gif, image/jpeg, image/jpg, image/png" id="sendimg" />
+      </div>
       <el-input placeholder="请输入内容" v-model="msg" clearable></el-input>
       <el-button type="success" size="medium" round v-if="msg!=``" @click.native="go">发送</el-button>
       <el-button type="success" disabled size="medium" round v-else>发送</el-button>
@@ -44,7 +53,9 @@ export default {
       username: "",
       msg: "",
       messageList: [],
-      uid: ""
+      uid: "",
+      img: null,
+
     };
   },
   mounted() {
@@ -53,6 +64,38 @@ export default {
     window.onbeforeunload = evenet => {
       this.sendMessage(3);
       this.socket.close();
+    };
+    // 监听enter
+    document.onkeydown = e => {
+      if (e.keyCode === 13 && this.msg !== "") {
+        this.sendMessage(2, this.msg);
+      }
+    };
+    document.getElementById("sendimg").onchange = e => {
+      var reader = new FileReader();
+      var AllowImgFileSize = 210000; //上传图片最大值(单位字节)（ 2 M = 2097152 B ）超过2M上传失败
+      let file = e.target.files[0];
+      var imgUrlBase64;
+      if (file) {
+        //将文件以Data URL形式读入页面
+        imgUrlBase64 = reader.readAsDataURL(file);
+        reader.onload = e => {
+          //var ImgFileSize = reader.result.substring(reader.result.indexOf(",") + 1).length;//截取base64码部分（可选可不选，需要与后台沟通）
+          if (
+            AllowImgFileSize != 0 &&
+            AllowImgFileSize < reader.result.length
+          ) {
+            alert("上传失败，请上传不大于2M的图片！");
+            return;
+          } else {
+            //执行上传操作
+            // alert(reader.result);
+            this.img = reader.result;
+            this.sendMessage(2, this.msg);
+            this.img = null;
+          }
+        };
+      }
     };
   },
   methods: {
@@ -95,11 +138,12 @@ export default {
           uid: this.uid,
           type: type,
           username: this.username,
-          msg: msg
+          msg: msg,
+          img: this.img
         })
       );
       this.msg = "";
-    }, 
+    },
     go() {
       this.sendMessage(2, this.msg);
     }
@@ -107,6 +151,13 @@ export default {
   filters: {
     name(username) {
       return username.substring(0, 1);
+    }
+  },
+  computed: {
+    users() {
+      let length = this.messageList.length;
+      if (this.messageList[length - 1]) return this.messageList[length - 1].len;
+      return 0;
     }
   }
 };
@@ -222,5 +273,37 @@ export default {
   background-color: rgb(144, 233, 206);
   text-align: left;
   border-radius: 3px;
+}
+.time {
+  font-size: 6px;
+  color: rgb(71, 71, 71);
+  text-align: center;
+}
+.selectImg {
+  width: 60px;
+  height: 40px;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.selectImg input {
+  position: absolute;
+  height: 100%;
+  opacity: 0;
+}
+.bigimg {
+  position: fixed;
+  width: 100vw;
+  left: 0;
+  height: 100vh;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: rgba(219, 216, 216, 0.795);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
 }
 </style>
